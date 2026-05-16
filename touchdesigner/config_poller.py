@@ -15,9 +15,15 @@ TD_VERSION = '1.0.0'
 import json
 import urllib.request
 import urllib.error
+import ssl
 import subprocess
 import sys
 import os
+
+# Bypass SSL verification — TD's bundled Python lacks system CA certs
+_ssl_ctx = ssl.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode = ssl.CERT_NONE
 
 # Runtime state (not persisted, resets on restart)
 _last_config_version = 0
@@ -77,7 +83,7 @@ def _ack_command(command_id, result):
         method='POST',
     )
     try:
-        urllib.request.urlopen(req, timeout=5).read()
+        urllib.request.urlopen(req, timeout=5, context=_ssl_ctx).read()
     except Exception as e:
         _log(f'ack failed: {e}')
 
@@ -142,7 +148,7 @@ def poll_config():
     req = urllib.request.Request(url, headers={'X-Machine-Key': key})
 
     try:
-        with urllib.request.urlopen(req, timeout=5) as r:
+        with urllib.request.urlopen(req, timeout=5, context=_ssl_ctx) as r:
             cfg = json.loads(r.read().decode('utf-8'))
     except urllib.error.HTTPError as e:
         _log(f'HTTP {e.code} polling config')

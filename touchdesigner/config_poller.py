@@ -74,6 +74,17 @@ def _write_config_table(cfg):
     _write_channels_table(cfg)
 
 
+def _hex_to_rgb(hex_str):
+    """Convert '#rrggbb' to (r, g, b) floats 0–1. Returns None on bad input."""
+    h = (hex_str or '').lstrip('#')
+    if len(h) != 6:
+        return None
+    try:
+        return (int(h[0:2], 16) / 255.0, int(h[2:4], 16) / 255.0, int(h[4:6], 16) / 255.0)
+    except ValueError:
+        return None
+
+
 def _to_numeric(v):
     """Convert a value to float if possible. Bools become 0/1. Returns None if not numeric."""
     if isinstance(v, bool):
@@ -100,8 +111,19 @@ def _write_channels_table(cfg):
     tbl.clear()
     tbl.appendRow(['name', 'value'])
 
+    # Fields that are hex colours — expand to r/g/b channels
+    colour_fields = {'accent_colour'}
+
     for section, prefix in [('global', 'global'), ('role_settings', 'role')]:
         for k, v in (cfg.get(section) or {}).items():
+            if k in colour_fields:
+                rgb = _hex_to_rgb(v)
+                if rgb:
+                    base = k.replace('_colour', '').replace('_color', '')
+                    tbl.appendRow([f'{prefix}/{base}_r', rgb[0]])
+                    tbl.appendRow([f'{prefix}/{base}_g', rgb[1]])
+                    tbl.appendRow([f'{prefix}/{base}_b', rgb[2]])
+                continue
             n = _to_numeric(v)
             if n is not None:
                 tbl.appendRow([f'{prefix}/{k}', n])

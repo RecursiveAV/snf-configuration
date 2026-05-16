@@ -9,8 +9,9 @@ MACHINE_KEY = 'your-machine-key'      # must match MACHINE_KEY env var on Railwa
 TD_VERSION = '1.0.0'
 #
 # Required OPs on the same parent COMP:
-#   table_DAT named 'config_state'  — stores current resolved config (key/value)
-#   text_DAT named 'log'            — debug log
+#   table_DAT named 'config_state'     — all config as key/value strings
+#   table_DAT named 'config_channels'  — numeric values only (for DAT to CHOP)
+#   text_DAT named 'log'               — debug log
 
 import json
 import urllib.request
@@ -68,6 +69,44 @@ def _write_config_table(cfg):
     tbl.appendRow(['_meta.role', cfg.get('role', '')])
     tbl.appendRow(['_meta.label', cfg.get('label', '')])
     tbl.appendRow(['_meta.version', str(cfg.get('version', 0))])
+
+    # Also write numeric values into config_channels for DAT to CHOP
+    _write_channels_table(cfg)
+
+
+def _to_numeric(v):
+    """Convert a value to float if possible. Bools become 0/1. Returns None if not numeric."""
+    if isinstance(v, bool):
+        return 1.0 if v else 0.0
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        if v.lower() == 'true':
+            return 1.0
+        if v.lower() == 'false':
+            return 0.0
+        try:
+            return float(v)
+        except ValueError:
+            return None
+    return None
+
+
+def _write_channels_table(cfg):
+    """Write numeric config values into config_channels Table DAT for DAT to CHOP."""
+    tbl = parent().op('config_channels')
+    if tbl is None:
+        return
+    tbl.clear()
+    tbl.appendRow(['name', 'value'])
+
+    for section, prefix in [('global', 'global'), ('role_settings', 'role')]:
+        for k, v in (cfg.get(section) or {}).items():
+            n = _to_numeric(v)
+            if n is not None:
+                tbl.appendRow([f'{prefix}/{k}', n])
+
+    tbl.appendRow(['meta/version', float(cfg.get('version', 0))])
 
 
 def _ack_command(command_id, result):

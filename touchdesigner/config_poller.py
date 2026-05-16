@@ -2,11 +2,27 @@
 # Place in a Text DAT inside an Engine COMP, run on a 5s timer.
 # Module mode: call poll_config() from a Timer CHOP callback.
 #
-# >>> EDIT THESE VALUES PER MACHINE <<<
-MACHINE_ID = 'totem-1'                # change per machine
+# >>> EDIT THESE VALUES <<<
 CONFIG_SERVER = 'https://snf-configuration-production.up.railway.app'
 MACHINE_KEY = 'your-machine-key'      # must match MACHINE_KEY env var on Railway
 TD_VERSION = '1.0.0'
+
+# All 13 machine endpoints
+MACHINES = [
+    ('totem-1',  'Totem 1'),
+    ('totem-2',  'Totem 2'),
+    ('totem-3',  'Totem 3'),
+    ('totem-4',  'Totem 4'),
+    ('map-1',    'Grantee Map 1'),
+    ('map-2',    'Grantee Map 2'),
+    ('map-3',    'Grantee Map 3'),
+    ('map-4',    'Grantee Map 4'),
+    ('map-5',    'Grantee Map 5'),
+    ('map-6',    'Grantee Map 6'),
+    ('lym-1',    'Leave Your Mark 1'),
+    ('lym-2',    'Leave Your Mark 2'),
+    ('lym-3',    'Leave Your Mark 3'),
+]
 #
 # Required OPs on the same parent COMP:
 #   table_DAT named 'config_state'     — all config as key/value strings
@@ -30,9 +46,40 @@ _ssl_ctx.verify_mode = ssl.CERT_NONE
 _last_config_version = 0
 
 
+def setup_machine_menu():
+    """Run once in Textport to add the Machine ID dropdown to the Engine COMP.
+    Usage:  op('engine1/config_poller').module.setup_machine_menu()
+    """
+    comp = parent()
+    # Add or reuse a custom parameter page
+    page = None
+    for p in comp.customPages:
+        if p.name == 'SNF':
+            page = p
+            break
+    if page is None:
+        page = comp.appendCustomPage('SNF')
+
+    # Add the menu parameter if it doesn't exist
+    if not hasattr(comp.par, 'Machineid'):
+        page.appendMenu('Machineid', label='Machine ID')
+
+    comp.par.Machineid.menuNames = [m[0] for m in MACHINES]
+    comp.par.Machineid.menuLabels = [m[1] for m in MACHINES]
+    comp.par.Machineid.default = MACHINES[0][0]
+    comp.par.Machineid.val = MACHINES[0][0]
+    _log(f'Machine menu created with {len(MACHINES)} entries — select on the SNF parameter page')
+
+
 def _get(key, default=None):
+    # Read machine_id from the custom parameter dropdown on the Engine COMP
+    machine_id = ''
+    try:
+        machine_id = parent().par.Machineid.eval()
+    except:
+        pass
     CONFIG = {
-        'machine_id': MACHINE_ID,
+        'machine_id': machine_id,
         'config_server': CONFIG_SERVER,
         'machine_key': MACHINE_KEY,
         'td_version': TD_VERSION,

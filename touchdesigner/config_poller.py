@@ -4,7 +4,6 @@
 #
 # >>> EDIT THESE VALUES <<<
 CONFIG_SERVER = 'https://snf-configuration-production.up.railway.app'
-MACHINE_KEY = 'your-machine-key'      # must match MACHINE_KEY env var on Railway
 TD_VERSION = '1.0.0'
 
 # All 13 machine endpoints
@@ -47,8 +46,8 @@ _last_config_version = 0
 
 
 def setup_machine_menu():
-    """Run once in Textport to add the Machine ID dropdown to the Engine COMP.
-    Usage:  op('engine1/config_poller').module.setup_machine_menu()
+    """Run once in Textport to add Machine ID and Machine Key to the base COMP.
+    Usage:  op('config/config_poller').module.setup_machine_menu()
     """
     comp = parent()
     # Add or reuse a custom parameter page
@@ -60,28 +59,40 @@ def setup_machine_menu():
     if page is None:
         page = comp.appendCustomPage('SNF')
 
-    # Add the menu parameter if it doesn't exist
+    # Machine ID dropdown
     if not hasattr(comp.par, 'Machineid'):
         page.appendMenu('Machineid', label='Machine ID')
-
     comp.par.Machineid.menuNames = [m[0] for m in MACHINES]
     comp.par.Machineid.menuLabels = [m[1] for m in MACHINES]
     comp.par.Machineid.default = MACHINES[0][0]
     comp.par.Machineid.val = MACHINES[0][0]
-    _log(f'Machine menu created with {len(MACHINES)} entries — select on the SNF parameter page')
+
+    # Machine Key string field
+    if not hasattr(comp.par, 'Machinekey'):
+        page.appendStr('Machinekey', label='Machine Key')
+    comp.par.Machinekey.default = ''
+    if not comp.par.Machinekey.eval():
+        comp.par.Machinekey.val = ''
+
+    _log(f'SNF parameters created — set Machine ID and Machine Key on the SNF page')
 
 
 def _get(key, default=None):
-    # Read machine_id from the custom parameter dropdown on the Engine COMP
+    # Read machine_id and machine_key from custom parameters on the parent COMP
     machine_id = ''
+    machine_key = ''
     try:
         machine_id = parent().par.Machineid.eval()
+    except:
+        pass
+    try:
+        machine_key = parent().par.Machinekey.eval()
     except:
         pass
     CONFIG = {
         'machine_id': machine_id,
         'config_server': CONFIG_SERVER,
-        'machine_key': MACHINE_KEY,
+        'machine_key': machine_key,
         'td_version': TD_VERSION,
     }
     return CONFIG.get(key, default)

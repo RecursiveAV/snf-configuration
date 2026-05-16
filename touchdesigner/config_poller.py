@@ -2,12 +2,11 @@
 # Place in a Text DAT inside an Engine COMP, run on a 5s timer.
 # Module mode: call poll_config() from a Timer CHOP callback.
 #
-# Required Storage on this Text DAT's parent (set once at startup):
-#   me.parent().store('machine_id', 'totem-1')         # change per machine
-#   me.parent().store('config_server', 'https://snf-config.up.railway.app')
-#   me.parent().store('machine_key', 'snf-machines')
-#   me.parent().store('td_version', '1.0.0')
-#   me.parent().store('last_config_version', 0)
+# >>> EDIT THESE VALUES PER MACHINE <<<
+MACHINE_ID = 'totem-1'                # change per machine
+CONFIG_SERVER = 'https://snf-configuration-production.up.railway.app'
+MACHINE_KEY = 'your-machine-key'      # must match MACHINE_KEY env var on Railway
+TD_VERSION = '1.0.0'
 #
 # Required OPs on the same parent COMP:
 #   table_DAT named 'config_state'  — stores current resolved config (key/value)
@@ -20,9 +19,18 @@ import subprocess
 import sys
 import os
 
+# Runtime state (not persisted, resets on restart)
+_last_config_version = 0
+
 
 def _get(key, default=None):
-    return parent().fetch(key, default)
+    CONFIG = {
+        'machine_id': MACHINE_ID,
+        'config_server': CONFIG_SERVER,
+        'machine_key': MACHINE_KEY,
+        'td_version': TD_VERSION,
+    }
+    return CONFIG.get(key, default)
 
 
 def _log(msg):
@@ -86,7 +94,8 @@ def _handle_command(cmd):
     try:
         if cmd_type == 'reload_config':
             # Force a re-pull by zeroing the version counter
-            parent().store('last_config_version', 0)
+            global _last_config_version
+            _last_config_version = 0
 
         elif cmd_type == 'restart_td':
             # Ack first so the server clears the command before we go away
@@ -143,11 +152,11 @@ def poll_config():
         return
 
     # Apply config only when version changes
-    last_version = int(_get('last_config_version', 0) or 0)
+    global _last_config_version
     new_version = int(cfg.get('version', 0))
-    if new_version != last_version:
+    if new_version != _last_config_version:
         _write_config_table(cfg)
-        parent().store('last_config_version', new_version)
+        _last_config_version = new_version
         _log(f'Config updated -> version {new_version}')
 
     # Always check for pending command

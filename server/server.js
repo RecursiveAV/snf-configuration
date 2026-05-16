@@ -160,6 +160,18 @@ function resolveConfig(machineId) {
     brightness = Math.max(0, Math.min(1, brightness + overrides.brightness_offset));
   }
 
+  // Merge role + overrides, replacing nulls with role defaults
+  const mergedRole = { ...roleCfg };
+  for (const [k, v] of Object.entries(overrides)) {
+    if (v !== null && v !== undefined && v !== '') {
+      mergedRole[k] = v;
+    }
+  }
+  // Ensure blur_amount is always a concrete number
+  if (mergedRole.blur_amount === null || mergedRole.blur_amount === undefined) {
+    mergedRole.blur_amount = 0;
+  }
+
   return {
     machine_id: m.id,
     role: m.role,
@@ -171,8 +183,10 @@ function resolveConfig(machineId) {
       event_active: state.global.event_active,
       brightness,
       blur,
+      brightness_offset: overrides.brightness_offset ?? 0,
+      blur_offset: overrides.blur_offset ?? 0,
     },
-    role_settings: { ...roleCfg, ...overrides },
+    role_settings: mergedRole,
     pending_command: m.pending_command,
   };
 }

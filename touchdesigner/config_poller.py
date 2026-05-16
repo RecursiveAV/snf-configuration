@@ -43,6 +43,7 @@ _ssl_ctx.verify_mode = ssl.CERT_NONE
 
 # Runtime state (not persisted, resets on restart)
 _last_config_version = 0
+_last_machine_id = ''
 
 
 def setup_machine_menu():
@@ -276,8 +277,14 @@ def poll_config():
         _log(f'Poll failed: {e}')
         return
 
+    # Reset version tracking if machine ID changed (force config refresh)
+    global _last_config_version, _last_machine_id
+    if machine_id != _last_machine_id:
+        _last_config_version = 0
+        _last_machine_id = machine_id
+        _log(f'Machine switched to {machine_id}')
+
     # Apply config only when version changes
-    global _last_config_version
     new_version = int(cfg.get('version', 0))
     if new_version != _last_config_version:
         _write_config_table(cfg)

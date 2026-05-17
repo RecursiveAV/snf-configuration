@@ -88,10 +88,13 @@ function Login({ onAuth }) {
 }
 
 // ---------- Reusable controls ----------
-function SliderControl({ label, hint, value, onChange, min, max, step, format }) {
-  const display = value === null || value === undefined
-    ? '—'
-    : format ? format(value) : Number(value).toFixed(step < 1 ? 2 : 0);
+function SliderControl({ label, hint, value, onChange, min, max, step }) {
+  const onNum = (raw) => {
+    if (raw === '') { onChange(null); return; }
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) return;
+    onChange(Math.min(max, Math.max(min, n)));
+  };
   return (
     <div className="control">
       <div className="name">
@@ -106,7 +109,15 @@ function SliderControl({ label, hint, value, onChange, min, max, step, format })
         value={value ?? min}
         onChange={(e) => onChange(parseFloat(e.target.value))}
       />
-      <div className={`value-display ${value === null ? 'muted' : ''}`}>{display}</div>
+      <input
+        type="number"
+        className="value-input"
+        min={min}
+        max={max}
+        step={step}
+        value={value ?? ''}
+        onChange={(e) => onNum(e.target.value)}
+      />
     </div>
   );
 }
@@ -367,7 +378,6 @@ function MachinePanel({ state, save, machine, sendCommand }) {
           hint="-0.2 to +0.2 · added to global"
           value={ov.brightness_offset ?? 0}
           min={-0.2} max={0.2} step={0.01}
-          format={(v) => (v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2))}
           onChange={(v) => upd({ brightness_offset: v === 0 ? null : v })}
         />
 
@@ -376,7 +386,6 @@ function MachinePanel({ state, save, machine, sendCommand }) {
           hint="-10 to +10 px · added to effective blur"
           value={ov.blur_offset ?? 0}
           min={-10} max={10} step={0.5}
-          format={(v) => (v > 0 ? `+${v}` : `${v}`)}
           onChange={(v) => upd({ blur_offset: v === 0 ? null : v })}
         />
 

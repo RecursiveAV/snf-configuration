@@ -424,3 +424,139 @@ main.panel {
   padding: 2px;
   cursor: pointer;
 }
+
+/* --- Mobile nav toggle (hidden on desktop) --- */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+.nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+/* --- Tablet / mobile (<= 860px) --- */
+@media (max-width: 860px) {
+  html, body { font-size: 14px; }
+
+  /* Inputs at 16px prevent iOS focus-zoom */
+  input, select, textarea { font-size: 16px; padding: 10px 12px; }
+  button { padding: 10px 14px; font-size: 12px; min-height: 40px; }
+
+  header.top {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  header.top h1 { font-size: 18px; }
+  header.top .meta {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    font-size: 9px;
+  }
+  header.top .meta .pill { padding: 4px 6px; }
+
+  .nav-toggle { display: inline-flex; }
+
+  /* Sidebar becomes a slide-in drawer */
+  .layout { grid-template-columns: 1fr; }
+  aside.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78%;
+    max-width: 320px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    border-right: 1px solid var(--line-strong);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    padding-top: 12px;
+  }
+  aside.nav.open { transform: translateX(0); }
+  .nav-overlay.show { display: block; }
+  .nav-item { padding: 12px 24px; font-size: 14px; }
+  .nav-group h3 { margin-left: 24px; margin-right: 24px; }
+
+  main.panel { padding: 20px 16px; }
+
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+  }
+  .section-head h2 { font-size: 26px; }
+
+  /* Stack control rows: label on top, input full-width, value below input */
+  .control,
+  .control[style] {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    padding: 14px 14px;
+  }
+  .control .name { font-size: 13px; }
+  .control .value-display {
+    text-align: left;
+    font-size: 13px;
+  }
+  .colour-input { flex-wrap: wrap; }
+  .colour-input input[type="text"] { flex: 1; min-width: 140px; }
+  .colour-input input[type="color"] {
+    width: 44px;
+    height: 40px;
+  }
+
+  /* Make range sliders easier to grab */
+  input[type="range"] { height: 32px; }
+  input[type="range"]::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -10px;
+  }
+  input[type="checkbox"] { width: 22px; height: 22px; }
+
+  .actions { gap: 8px; }
+  .actions button { flex: 1 1 auto; min-width: 120px; }
+
+  .bulk-actions { padding: 16px; }
+
+  .machine-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .machine-card { padding: 14px; }
+  .machine-card .label { font-size: 16px; }
+
+  .save-state {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    text-align: center;
+  }
+
+  .override-badge { display: inline-block; margin: 4px 0 0 6px; }
+  .clear-override { min-height: 32px; padding: 4px 10px; }
+}
+
+@media (max-width: 480px) {
+  header.top h1 { font-size: 16px; }
+  header.top .meta .pill:nth-child(2) { display: none; }
+  .section-head h2 { font-size: 22px; }
+  main.panel { padding: 16px 12px; }
+  .login form { padding: 28px 20px; }
+}

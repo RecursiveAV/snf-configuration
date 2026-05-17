@@ -503,6 +503,12 @@ export default function App() {
   const [state, setState] = useState(null);
   const [view, setView] = useState({ type: 'overview' });
   const [saveState, setSaveState] = useSaveState();
+  const [navOpen, setNavOpen] = useState(false);
+
+  const selectView = useCallback((v) => {
+    setView(v);
+    setNavOpen(false);
+  }, []);
 
   const fetchState = useCallback(async () => {
     try {
@@ -571,7 +577,16 @@ export default function App() {
   return (
     <div className="app">
       <header className="top">
-        <h1>SNF · <em>Live Install Config</em></h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            className="nav-toggle"
+            aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
+            onClick={() => setNavOpen((o) => !o)}
+          >
+            {navOpen ? '×' : '≡'}
+          </button>
+          <h1>SNF · <em>Live Install Config</em></h1>
+        </div>
         <div className="meta">
           <span className="pill">{onlineCount}/{state.machines.length} online</span>
           <span className="pill">config v{state.version}</span>
@@ -582,16 +597,20 @@ export default function App() {
       </header>
 
       <div className="layout">
-        <aside className="nav">
+        <div
+          className={`nav-overlay ${navOpen ? 'show' : ''}`}
+          onClick={() => setNavOpen(false)}
+        />
+        <aside className={`nav ${navOpen ? 'open' : ''}`}>
           <div className="nav-group">
             <h3>System</h3>
             <div className={`nav-item ${view.type === 'overview' ? 'active' : ''}`}
-                 onClick={() => setView({ type: 'overview' })}>
+                 onClick={() => selectView({ type: 'overview' })}>
               <span className="label">Overview</span>
               <span className="count">{state.machines.length}</span>
             </div>
             <div className={`nav-item ${view.type === 'global' ? 'active' : ''}`}
-                 onClick={() => setView({ type: 'global' })}>
+                 onClick={() => selectView({ type: 'global' })}>
               <span className="label">Global Settings</span>
             </div>
           </div>
@@ -602,14 +621,14 @@ export default function App() {
               <div className="nav-group" key={role}>
                 <h3>{ROLE_LABELS[role]}</h3>
                 <div className={`nav-item ${view.type === 'role' && view.id === role ? 'active' : ''}`}
-                     onClick={() => setView({ type: 'role', id: role })}>
+                     onClick={() => selectView({ type: 'role', id: role })}>
                   <span className="label">Role defaults</span>
                   <span className="count">{machines.length}</span>
                 </div>
                 {machines.map((m) => (
                   <div key={m.id}
                        className={`nav-item ${view.type === 'machine' && view.id === m.id ? 'active' : ''}`}
-                       onClick={() => setView({ type: 'machine', id: m.id })}
+                       onClick={() => selectView({ type: 'machine', id: m.id })}
                        style={{ paddingLeft: 40 }}>
                     <span className={`dot ${m.pending_command ? 'pending' : m.status?.online ? 'online' : 'offline'}`} />
                     <span className="label">{m.overrides?.display_label || m.label}</span>

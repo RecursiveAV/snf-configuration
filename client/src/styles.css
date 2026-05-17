@@ -288,6 +288,13 @@ main.panel {
   font-size: 14px;
 }
 .control .value-display.muted { color: var(--text-faint); font-weight: 400; }
+.control .value-input {
+  padding: 6px 8px;
+  text-align: right;
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 13px;
+}
 
 /* --- Status indicators --- */
 .dot {
@@ -513,6 +520,11 @@ main.panel {
   .control .value-display {
     text-align: left;
     font-size: 13px;
+  }
+  .control .value-input {
+    text-align: left;
+    max-width: 140px;
+    font-size: 16px;
   }
   .colour-input { flex-wrap: wrap; }
   .colour-input input[type="text"] { flex: 1; min-width: 140px; }

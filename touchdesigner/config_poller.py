@@ -5,6 +5,10 @@
 # >>> EDIT THESE VALUES <<<
 CONFIG_SERVER = 'https://snf-configuration-production.up.railway.app'
 TD_VERSION = '1.0.0'
+# Full path to the main show .toe, used by restart_td. The poller runs inside a
+# TouchEngine process and can't introspect the host app, so set this explicitly.
+# Update it (and the boot shortcut) whenever the .toe is versioned/renamed.
+MAIN_TOE_PATH = r'G:\Shared drives\Squint SNF Touchdesigner Folder\TD Leave your Mark\snf_leave_your_mark.1.0.toe'
 
 # All 13 machine endpoints
 MACHINES = [
@@ -35,6 +39,7 @@ import ssl
 import subprocess
 import sys
 import os
+import tempfile
 
 # Bypass SSL verification — TD's bundled Python lacks system CA certs
 _ssl_ctx = ssl.create_default_context()
@@ -224,19 +229,30 @@ def _handle_command(cmd):
             _last_config_version = 0
 
         elif cmd_type == 'restart_td':
-            # project has no .file attr; the .toe path is folder + name
-            toe_path = os.path.join(project.folder, project.name)
-            # Spawn the relaunch before acking, so a failure here surfaces as
-            # an error result instead of being swallowed after the ack
+            # The poller runs in the TouchEngine process, so project.quit() would
+            # only kill the engine, not the show. Restart the host app at the OS
+            # level via a detached helper that outlives the kill.
             if sys.platform == 'win32':
-                subprocess.Popen(['cmd', '/c', 'start', '', toe_path], shell=False)
+                bat = os.path.join(tempfile.gettempdir(), 'snf_restart_td.bat')
+                with open(bat, 'w') as f:
+                    f.write('@echo off\r\n')
+                    f.write('timeout /t 2 /nobreak >nul\r\n')          # let the ack flush
+                    f.write('taskkill /f /im TouchDesigner.exe\r\n')
+                    f.write('timeout /t 3 /nobreak >nul\r\n')          # let it fully exit
+                    f.write(f'start "" "{MAIN_TOE_PATH}"\r\n')
+                subprocess.Popen(
+                    ['cmd', '/c', bat],
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS,
+                )
             else:
-                subprocess.Popen(['open', toe_path])
-            # Ack before quitting, or the relaunched instance sees the same
-            # pending command and restarts in a loop
+                subprocess.Popen(
+                    ['/bin/sh', '-c', f'sleep 2; pkill -f TouchDesigner; sleep 3; open "{MAIN_TOE_PATH}"'],
+                    start_new_session=True,
+                )
+            # Helper is detached and will kill+relaunch; ack now, before the kill
+            # fires, so the relaunched app doesn't see a pending command and loop
             _ack_command(cmd_id, 'restarting')
-            project.quit(force=True)
-            return  # We're going down
+            return  # main app is going down
 
         elif cmd_type == 'reboot_machine':
             _ack_command(cmd_id, 'rebooting')

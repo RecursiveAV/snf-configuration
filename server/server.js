@@ -42,7 +42,8 @@ const DEFAULT_MACHINES = [
 // ---------- Default settings ----------
 const DEFAULT_GLOBAL = {
   master_brightness: 1.0,
-  master_blur: 0.0,           // single-stage blur, namespaced for future split
+  pre_shrink: 1,              // Blur TOP pre-shrink (downscale factor), 1–8
+  filter_size: 0.0,          // Blur TOP filter size (radius px), 0–32
   demo_mode: false,
   kiosk_lock: true,
   event_active: true,
@@ -50,21 +51,24 @@ const DEFAULT_GLOBAL = {
 
 const DEFAULT_ROLE_SETTINGS = {
   totem: {
-    blur_amount: null,         // null = inherit master_blur
+    pre_shrink: null,          // null = inherit global
+    filter_size: null,
     idle_animation_speed: 1.0,
     accent_colour: '#68b6ff',
     attract_text: 'Touch to begin',
     touch_sensitivity: 0.7,
   },
   map: {
-    blur_amount: null,
+    pre_shrink: null,
+    filter_size: null,
     theme_filter: 'none',
     marker_pulse_speed: 1.0,
     show_grantee_count: true,
     map_zoom_default: 1.0,
   },
   lym: {
-    blur_amount: null,
+    pre_shrink: null,
+    filter_size: null,
     submission_timeout_seconds: 60,
     confirmation_message: 'Thank you — your mark has been left.',
     enable_test_pattern: false,
@@ -75,7 +79,6 @@ const DEFAULT_ROLE_SETTINGS = {
 const DEFAULT_MACHINE_OVERRIDES = {
   // Empty by default. Each machine can hold any of:
   //   brightness_offset (-0.2..+0.2)
-  //   blur_offset       (-10..+10)
   //   display_label     string
   //   ...and any per-role field to override that role's value
 };
@@ -142,16 +145,14 @@ function resolveConfig(machineId) {
   const roleCfg = state.roles[m.role] || {};
   const overrides = m.overrides || {};
 
-  // Compute effective blur: machine override > role > global, then add machine offset
-  let blur = state.global.master_blur;
-  if (roleCfg.blur_amount !== null && roleCfg.blur_amount !== undefined) {
-    blur = roleCfg.blur_amount;
+  // Compute effective blur params: role override > global (no machine layer)
+  let pre_shrink = state.global.pre_shrink;
+  if (roleCfg.pre_shrink !== null && roleCfg.pre_shrink !== undefined) {
+    pre_shrink = roleCfg.pre_shrink;
   }
-  if (overrides.blur_amount !== undefined && overrides.blur_amount !== null) {
-    blur = overrides.blur_amount;
-  }
-  if (typeof overrides.blur_offset === 'number') {
-    blur = Math.max(0, blur + overrides.blur_offset);
+  let filter_size = state.global.filter_size;
+  if (roleCfg.filter_size !== null && roleCfg.filter_size !== undefined) {
+    filter_size = roleCfg.filter_size;
   }
 
   // Compute effective brightness
@@ -167,10 +168,9 @@ function resolveConfig(machineId) {
       mergedRole[k] = v;
     }
   }
-  // Ensure blur_amount is always a concrete number
-  if (mergedRole.blur_amount === null || mergedRole.blur_amount === undefined) {
-    mergedRole.blur_amount = 0;
-  }
+  // Blur is resolved into the global block below; don't echo raw role values
+  delete mergedRole.pre_shrink;
+  delete mergedRole.filter_size;
 
   return {
     machine_id: m.id,
@@ -182,9 +182,9 @@ function resolveConfig(machineId) {
       kiosk_lock: state.global.kiosk_lock,
       event_active: state.global.event_active,
       brightness,
-      blur,
+      pre_shrink,
+      filter_size,
       brightness_offset: overrides.brightness_offset ?? 0,
-      blur_offset: overrides.blur_offset ?? 0,
     },
     role_settings: mergedRole,
     pending_command: m.pending_command,

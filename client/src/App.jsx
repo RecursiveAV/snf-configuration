@@ -221,9 +221,12 @@ function GlobalPanel({ state, save }) {
         <SliderControl label="Master Brightness" hint="0.00 – 1.00"
           value={g.master_brightness} min={0} max={1} step={0.01}
           onChange={(v) => upd({ master_brightness: v })} />
-        <SliderControl label="Master Blur" hint="0 – 20 px"
-          value={g.master_blur} min={0} max={20} step={0.5}
-          onChange={(v) => upd({ master_blur: v })} />
+        <SliderControl label="Pre-Shrink" hint="1 – 8 · downscale before blur"
+          value={g.pre_shrink} min={1} max={8} step={1}
+          onChange={(v) => upd({ pre_shrink: v })} />
+        <SliderControl label="Filter Size" hint="0 – 32 px · blur radius"
+          value={g.filter_size} min={0} max={32} step={0.5}
+          onChange={(v) => upd({ filter_size: v })} />
         <ToggleControl label="Event Active" hint="Master on/off for live event"
           value={g.event_active} onChange={(v) => upd({ event_active: v })} />
         <ToggleControl label="Demo Mode" hint="Cycle fake content for previews"
@@ -248,9 +251,12 @@ function RolePanel({ state, save, role, sendBulk }) {
         <div className="crumb">{count} machines · role-level settings</div>
       </div>
       <div className="controls">
-        <SliderControl label="Blur (role override)" hint="leave at 0 to inherit master · 0–20 px"
-          value={r.blur_amount ?? 0} min={0} max={20} step={0.5}
-          onChange={(v) => upd({ blur_amount: v === 0 ? null : v })} />
+        <SliderControl label="Pre-Shrink (role override)" hint="clear to inherit global · 1–8"
+          value={r.pre_shrink} min={1} max={8} step={1}
+          onChange={(v) => upd({ pre_shrink: v })} />
+        <SliderControl label="Filter Size (role override)" hint="clear to inherit global · 0–32 px"
+          value={r.filter_size} min={0} max={32} step={0.5}
+          onChange={(v) => upd({ filter_size: v })} />
         {role === 'totem' && <TotemControls r={r} upd={upd} />}
         {role === 'map' && <MapControls r={r} upd={upd} />}
         {role === 'lym' && <LymControls r={r} upd={upd} />}
@@ -379,14 +385,6 @@ function MachinePanel({ state, save, machine, sendCommand }) {
           value={ov.brightness_offset ?? 0}
           min={-0.2} max={0.2} step={0.01}
           onChange={(v) => upd({ brightness_offset: v === 0 ? null : v })}
-        />
-
-        <SliderControl
-          label="Blur Offset"
-          hint="-10 to +10 px · added to effective blur"
-          value={ov.blur_offset ?? 0}
-          min={-10} max={10} step={0.5}
-          onChange={(v) => upd({ blur_offset: v === 0 ? null : v })}
         />
 
         {role === 'totem' && (

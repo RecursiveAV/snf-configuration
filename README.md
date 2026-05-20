@@ -21,11 +21,11 @@ Three layers of settings merge to produce each machine's effective config:
 
 ## Settings model
 
-| Scope    | Examples                                                  |
-| -------- | --------------------------------------------------------- |
-| Global   | master brightness, master blur, event_active, demo_mode   |
-| Role     | totem accent colour, map theme filter, LYM timeout, blur  |
-| Machine  | brightness offset, blur offset, display label, any field  |
+| Scope    | Examples                                                       |
+| -------- | -------------------------------------------------------------- |
+| Global   | master brightness, pre-shrink, filter size, event_active, demo_mode |
+| Role     | totem accent colour, map theme filter, LYM timeout, blur override   |
+| Machine  | brightness offset, display label, any field                    |
 
 A machine override of `null` (or empty string) is treated as "clear me, fall back to role/global".
 
@@ -93,7 +93,8 @@ For each machine:
 ### Available config keys in `config_state` table
 
 - `global.brightness` (0–1, includes per-machine offset)
-- `global.blur` (px, includes per-machine offset)
+- `global.pre_shrink` (1–8, Blur TOP pre-shrink; role override > global)
+- `global.filter_size` (0–32 px, Blur TOP filter size; role override > global)
 - `global.event_active` (true/false)
 - `global.demo_mode` (true/false)
 - `global.kiosk_lock` (true/false)
@@ -102,7 +103,7 @@ For each machine:
 
 ## Adding new settings later
 
-To split blur into multiple stages (e.g. `blur_ui`, `blur_background`):
+To add a new setting (e.g. a `bloom` amount):
 
 1. Add to `DEFAULT_GLOBAL` and/or `DEFAULT_ROLE_SETTINGS` in `server/server.js`.
 2. Add a control in the relevant panel in `client/src/App.jsx`.

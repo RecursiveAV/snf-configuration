@@ -224,14 +224,17 @@ def _handle_command(cmd):
             _last_config_version = 0
 
         elif cmd_type == 'restart_td':
-            # Ack first so the server clears the command before we go away
-            _ack_command(cmd_id, 'restarting')
-            # Relaunch the .toe file. project.file is the current project path.
-            toe_path = project.file
+            # project has no .file attr; the .toe path is folder + name
+            toe_path = os.path.join(project.folder, project.name)
+            # Spawn the relaunch before acking, so a failure here surfaces as
+            # an error result instead of being swallowed after the ack
             if sys.platform == 'win32':
                 subprocess.Popen(['cmd', '/c', 'start', '', toe_path], shell=False)
             else:
                 subprocess.Popen(['open', toe_path])
+            # Ack before quitting, or the relaunched instance sees the same
+            # pending command and restarts in a loop
+            _ack_command(cmd_id, 'restarting')
             project.quit(force=True)
             return  # We're going down
 

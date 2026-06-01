@@ -221,18 +221,31 @@ function GlobalPanel({ state, save }) {
         <SliderControl label="Master Brightness" hint="0.00 – 1.00"
           value={g.master_brightness} min={0} max={1} step={0.01}
           onChange={(v) => upd({ master_brightness: v })} />
-        <SliderControl label="Pre-Shrink" hint="1 – 8 · downscale before blur"
-          value={g.pre_shrink} min={1} max={8} step={1}
-          onChange={(v) => upd({ pre_shrink: v })} />
-        <SliderControl label="Filter Size" hint="0 – 32 px · blur radius"
-          value={g.filter_size} min={0} max={32} step={0.5}
-          onChange={(v) => upd({ filter_size: v })} />
         <ToggleControl label="Event Active" hint="Master on/off for live event"
           value={g.event_active} onChange={(v) => upd({ event_active: v })} />
         <ToggleControl label="Demo Mode" hint="Cycle fake content for previews"
           value={g.demo_mode} onChange={(v) => upd({ demo_mode: v })} />
         <ToggleControl label="Kiosk Lock" hint="Disable TD exit shortcuts"
           value={g.kiosk_lock} onChange={(v) => upd({ kiosk_lock: v })} />
+
+        <h4 className="subsection-head">Totems</h4>
+        <SliderControl label="Pre-Shrink" hint="1 – 8 · downscale before blur"
+          value={g.pre_shrink} min={1} max={8} step={1}
+          onChange={(v) => upd({ pre_shrink: v })} />
+        <SliderControl label="Filter Size" hint="0 – 32 px · blur radius"
+          value={g.filter_size} min={0} max={32} step={0.5}
+          onChange={(v) => upd({ filter_size: v })} />
+
+        <h4 className="subsection-head">Leave Your Mark</h4>
+        <SliderControl label="Pre-Shrink" hint="1 – 8 · downscale before blur"
+          value={g.lym_pre_shrink} min={1} max={8} step={1}
+          onChange={(v) => upd({ lym_pre_shrink: v })} />
+        <SliderControl label="Filter Size" hint="1 – 32 px · blur radius"
+          value={g.lym_filter_size} min={1} max={32} step={1}
+          onChange={(v) => upd({ lym_filter_size: v })} />
+        <SliderControl label="Master Volume" hint="0.0 – 1.0"
+          value={g.lym_volume} min={0} max={1} step={0.1}
+          onChange={(v) => upd({ lym_volume: v })} />
       </div>
     </>
   );
@@ -251,12 +264,6 @@ function RolePanel({ state, save, role, sendBulk }) {
         <div className="crumb">{count} machines · role-level settings</div>
       </div>
       <div className="controls">
-        <SliderControl label="Pre-Shrink (role override)" hint="clear to inherit global · 1–8"
-          value={r.pre_shrink} min={1} max={8} step={1}
-          onChange={(v) => upd({ pre_shrink: v })} />
-        <SliderControl label="Filter Size (role override)" hint="clear to inherit global · 0–32 px"
-          value={r.filter_size} min={0} max={32} step={0.5}
-          onChange={(v) => upd({ filter_size: v })} />
         {role === 'totem' && <TotemControls r={r} upd={upd} />}
         {role === 'map' && <MapControls r={r} upd={upd} />}
         {role === 'lym' && <LymControls r={r} upd={upd} />}

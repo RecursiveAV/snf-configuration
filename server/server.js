@@ -42,8 +42,13 @@ const DEFAULT_MACHINES = [
 // ---------- Default settings ----------
 const DEFAULT_GLOBAL = {
   master_brightness: 1.0,
-  pre_shrink: 1,              // Blur TOP pre-shrink (downscale factor), 1–8
-  filter_size: 0.0,          // Blur TOP filter size (radius px), 0–32
+  // Totem-targeted Blur TOP params
+  pre_shrink: 1,              // 1–8
+  filter_size: 0.0,           // 0–32 px
+  // Leave Your Mark-targeted controls
+  lym_pre_shrink: 1,          // 1–8
+  lym_filter_size: 1,         // 1–32 px
+  lym_volume: 1.0,            // 0–1
   demo_mode: false,
   kiosk_lock: true,
   event_active: true,
@@ -51,24 +56,18 @@ const DEFAULT_GLOBAL = {
 
 const DEFAULT_ROLE_SETTINGS = {
   totem: {
-    pre_shrink: null,          // null = inherit global
-    filter_size: null,
     idle_animation_speed: 1.0,
     accent_colour: '#68b6ff',
     attract_text: 'Touch to begin',
     touch_sensitivity: 0.7,
   },
   map: {
-    pre_shrink: null,
-    filter_size: null,
     theme_filter: 'none',
     marker_pulse_speed: 1.0,
     show_grantee_count: true,
     map_zoom_default: 1.0,
   },
   lym: {
-    pre_shrink: null,
-    filter_size: null,
     submission_timeout_seconds: 60,
     confirmation_message: 'Thank you — your mark has been left.',
     enable_test_pattern: false,
@@ -145,16 +144,6 @@ function resolveConfig(machineId) {
   const roleCfg = state.roles[m.role] || {};
   const overrides = m.overrides || {};
 
-  // Compute effective blur params: role override > global (no machine layer)
-  let pre_shrink = state.global.pre_shrink;
-  if (roleCfg.pre_shrink !== null && roleCfg.pre_shrink !== undefined) {
-    pre_shrink = roleCfg.pre_shrink;
-  }
-  let filter_size = state.global.filter_size;
-  if (roleCfg.filter_size !== null && roleCfg.filter_size !== undefined) {
-    filter_size = roleCfg.filter_size;
-  }
-
   // Compute effective brightness
   let brightness = state.global.master_brightness;
   if (typeof overrides.brightness_offset === 'number') {
@@ -168,10 +157,6 @@ function resolveConfig(machineId) {
       mergedRole[k] = v;
     }
   }
-  // Blur is resolved into the global block below; don't echo raw role values
-  delete mergedRole.pre_shrink;
-  delete mergedRole.filter_size;
-
   return {
     machine_id: m.id,
     role: m.role,
@@ -182,8 +167,11 @@ function resolveConfig(machineId) {
       kiosk_lock: state.global.kiosk_lock,
       event_active: state.global.event_active,
       brightness,
-      pre_shrink,
-      filter_size,
+      pre_shrink: state.global.pre_shrink,
+      filter_size: state.global.filter_size,
+      lym_pre_shrink: state.global.lym_pre_shrink,
+      lym_filter_size: state.global.lym_filter_size,
+      lym_volume: state.global.lym_volume,
       brightness_offset: overrides.brightness_offset ?? 0,
     },
     role_settings: mergedRole,

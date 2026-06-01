@@ -23,8 +23,8 @@ Three layers of settings merge to produce each machine's effective config:
 
 | Scope    | Examples                                                       |
 | -------- | -------------------------------------------------------------- |
-| Global   | master brightness, pre-shrink, filter size, event_active, demo_mode |
-| Role     | totem accent colour, map theme filter, LYM timeout, blur override   |
+| Global   | master brightness, totem & LYM blur, LYM volume, event_active, demo_mode |
+| Role     | totem accent colour, map theme filter, LYM timeout                  |
 | Machine  | brightness offset, display label, any field                    |
 
 A machine override of `null` (or empty string) is treated as "clear me, fall back to role/global".
@@ -93,8 +93,11 @@ For each machine:
 ### Available config keys in `config_state` table
 
 - `global.brightness` (0–1, includes per-machine offset)
-- `global.pre_shrink` (1–8, Blur TOP pre-shrink; role override > global)
-- `global.filter_size` (0–32 px, Blur TOP filter size; role override > global)
+- `global.pre_shrink` (1–8, Totem Blur TOP pre-shrink)
+- `global.filter_size` (0–32 px, Totem Blur TOP filter size)
+- `global.lym_pre_shrink` (1–8, LYM Blur TOP pre-shrink)
+- `global.lym_filter_size` (1–32 px, LYM Blur TOP filter size)
+- `global.lym_volume` (0–1, LYM master volume)
 - `global.event_active` (true/false)
 - `global.demo_mode` (true/false)
 - `global.kiosk_lock` (true/false)

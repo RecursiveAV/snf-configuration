@@ -98,6 +98,7 @@ For each machine:
 - `global.lym_pre_shrink` (1–8, LYM Blur TOP pre-shrink)
 - `global.lym_filter_size` (1–32 px, LYM Blur TOP filter size)
 - `global.lym_volume` (0–1, LYM master volume)
+- `global.map_lineup_slide` (true/false, show the line-up slide on map screens)
 - `global.event_active` (true/false)
 - `global.demo_mode` (true/false)
 - `global.kiosk_lock` (true/false)

@@ -208,7 +208,7 @@ function ColourControl({ label, hint, value, onChange }) {
 }
 
 // ---------- Global panel ----------
-function GlobalPanel({ state, save }) {
+function GlobalPanel({ state, save, sendBulk }) {
   const g = state.global;
   const upd = (patch) => save('/api/admin/global', patch);
   return (
@@ -236,6 +236,10 @@ function GlobalPanel({ state, save }) {
           value={g.filter_size} min={0} max={32} step={0.5}
           onChange={(v) => upd({ filter_size: v })} />
 
+        <h4 className="subsection-head">Grantee Maps</h4>
+        <ToggleControl label="Show Line-up Slide" hint="Cycle the line-up slide on map screens"
+          value={g.map_lineup_slide} onChange={(v) => upd({ map_lineup_slide: v })} />
+
         <h4 className="subsection-head">Leave Your Mark</h4>
         <SliderControl label="Pre-Shrink" hint="1 – 8 · downscale before blur"
           value={g.lym_pre_shrink} min={1} max={8} step={1}
@@ -246,6 +250,15 @@ function GlobalPanel({ state, save }) {
         <SliderControl label="Master Volume" hint="0.0 – 1.0"
           value={g.lym_volume} min={0} max={1} step={0.1}
           onChange={(v) => upd({ lym_volume: v })} />
+      </div>
+
+      <div className="bulk-actions">
+        <h4>Bulk actions for all 13 machines</h4>
+        <div className="actions">
+          <button onClick={() => {
+            if (confirm('Restart TD on ALL 13 machines?')) sendBulk('restart_td', 'all');
+          }}>Restart all TouchDesigners</button>
+        </div>
       </div>
     </>
   );
@@ -303,6 +316,9 @@ function TotemControls({ r, upd }) {
 function MapControls({ r, upd }) {
   return (
     <>
+      <NumberControl label="Submission Timeout" hint="Seconds before reset"
+        value={r.submission_timeout_seconds} min={5} max={600} step={5}
+        onChange={(v) => upd({ submission_timeout_seconds: v })} />
       <SelectControl label="Theme Filter" hint="Limit visible grants"
         value={r.theme_filter} onChange={(v) => upd({ theme_filter: v })}
         options={[
@@ -659,7 +675,7 @@ export default function App() {
               onSelectMachine={(id) => setView({ type: 'machine', id })}
               sendBulk={sendBulk} />
           )}
-          {view.type === 'global' && <GlobalPanel state={state} save={save} />}
+          {view.type === 'global' && <GlobalPanel state={state} save={save} sendBulk={sendBulk} />}
           {view.type === 'role' && (
             <RolePanel state={state} save={save} role={view.id} sendBulk={sendBulk} />
           )}

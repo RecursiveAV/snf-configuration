@@ -49,6 +49,8 @@ const DEFAULT_GLOBAL = {
   lym_pre_shrink: 1,          // 1–8
   lym_filter_size: 1,         // 1–32 px
   lym_volume: 1.0,            // 0–1
+  // Grantee Map-targeted toggles
+  map_lineup_slide: false,    // show the line-up slide
   demo_mode: false,
   kiosk_lock: true,
   event_active: true,
@@ -62,6 +64,7 @@ const DEFAULT_ROLE_SETTINGS = {
     touch_sensitivity: 0.7,
   },
   map: {
+    submission_timeout_seconds: 60,
     theme_filter: 'none',
     marker_pulse_speed: 1.0,
     show_grantee_count: true,
@@ -172,6 +175,7 @@ function resolveConfig(machineId) {
       lym_pre_shrink: state.global.lym_pre_shrink,
       lym_filter_size: state.global.lym_filter_size,
       lym_volume: state.global.lym_volume,
+      map_lineup_slide: state.global.map_lineup_slide,
       brightness_offset: overrides.brightness_offset ?? 0,
     },
     role_settings: mergedRole,
